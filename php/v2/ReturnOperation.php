@@ -10,9 +10,9 @@ class TsReturnOperation extends ReferencesOperation
     /**
      * @throws \Exception
      */
-    public function doOperation(): array
+    public function doOperation(): array //Обозначенный возврат void не соответствует возвращаемому типу, везде возвращается массив
     {
-        $data = (array)$this->getRequest('data');
+        $data = (array)$this->getRequest('data'); //Тут наверное не хватает валидации входящих данных
         $resellerId = $data['resellerId'];
         $notificationType = (int)$data['notificationType'];
         $result = [
@@ -29,17 +29,17 @@ class TsReturnOperation extends ReferencesOperation
             return $result;
         }
 
-        if (empty($notificationType)) {
+        if (empty($notificationType)) { // Убрал приведение к int, выше мы уже привели эту переменную к типу int
             throw new \Exception('Empty notificationType', 400);
         }
 
         $reseller = Seller::getById((int)$resellerId);
-        if (empty($reseller->id)) {
+        if (empty($reseller->id)) { // Сравнение с null никогда не сработает, потому что getById всегда возвращает объект. Поэтому наверное корректнее будет проверить на empty id.
             throw new \Exception('Seller not found!', 400);
         }
 
         $client = Contractor::getById((int)$data['clientId']);
-        if (empty($client->id) || $client->type !== Contractor::TYPE_CUSTOMER || $client->Seller->id !== $resellerId) {
+        if (empty($client->id) || $client->type !== Contractor::TYPE_CUSTOMER || $client->Seller->id !== $resellerId) { // Сравнение с null никогда не сработает, потому что getById всегда возвращает объект. Поэтому наверное корректнее будет проверить на empty id.
             throw new \Exception('сlient not found!', 400);
         }
 
@@ -49,20 +49,20 @@ class TsReturnOperation extends ReferencesOperation
         }
 
         $cr = Employee::getById((int)$data['creatorId']);
-        if (empty($cr->id)) {
+        if (empty($cr->id)) { // Сравнение с null никогда не сработает, потому что getById всегда возвращает объект. Поэтому наверное корректнее будет проверить на empty id.
             throw new \Exception('Creator not found!', 400);
         }
 
         $et = Employee::getById((int)$data['expertId']);
-        if (empty($et->id)) {
+        if (empty($et->id)) { // Сравнение с null никогда не сработает, потому что getById всегда возвращает объект. Поэтому наверное корректнее будет проверить на empty id.
             throw new \Exception('Expert not found!', 400);
         }
 
         $differences = '';
         if ($notificationType === self::TYPE_NEW) {
-            $differences = __('NewPositionAdded', null, $resellerId);
+            $differences = __('NewPositionAdded', null, $resellerId); // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
         } elseif ($notificationType === self::TYPE_CHANGE && !empty($data['differences'])) {
-            $differences = __('PositionStatusHasChanged', [
+            $differences = __('PositionStatusHasChanged', [ // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
                     'FROM' => Status::getName((int)$data['differences']['from']),
                     'TO'   => Status::getName((int)$data['differences']['to']),
                 ], $resellerId);
@@ -100,8 +100,8 @@ class TsReturnOperation extends ReferencesOperation
                     0 => [ // MessageTypes::EMAIL
                            'emailFrom' => $emailFrom,
                            'emailTo'   => $email,
-                           'subject'   => __('complaintEmployeeEmailSubject', $templateData, $resellerId),
-                           'message'   => __('complaintEmployeeEmailBody', $templateData, $resellerId),
+                           'subject'   => __('complaintEmployeeEmailSubject', $templateData, $resellerId), // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
+                           'message'   => __('complaintEmployeeEmailBody', $templateData, $resellerId), // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
                     ],
                 ], $resellerId, NotificationEvents::CHANGE_RETURN_STATUS);
                 $result['notificationEmployeeByEmail'] = true;
@@ -116,15 +116,15 @@ class TsReturnOperation extends ReferencesOperation
                     0 => [ // MessageTypes::EMAIL
                            'emailFrom' => $emailFrom,
                            'emailTo'   => $client->email,
-                           'subject'   => __('complaintClientEmailSubject', $templateData, $resellerId),
-                           'message'   => __('complaintClientEmailBody', $templateData, $resellerId),
+                           'subject'   => __('complaintClientEmailSubject', $templateData, $resellerId), // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
+                           'message'   => __('complaintClientEmailBody', $templateData, $resellerId), // Тут наверное вместо подчерков должна быть какая-то функция, но подходящей не нашел.
                     ],
                 ], $resellerId, $client->id, NotificationEvents::CHANGE_RETURN_STATUS, (int)$data['differences']['to']);
                 $result['notificationClientByEmail'] = true;
             }
 
             if (!empty($client->mobile)) {
-                $res = NotificationManager::send($resellerId, $client->id, NotificationEvents::CHANGE_RETURN_STATUS, (int)$data['differences']['to'], $templateData, $error);
+                $res = NotificationManager::send($resellerId, $client->id, NotificationEvents::CHANGE_RETURN_STATUS, (int)$data['differences']['to'], $templateData, $error); // Переменная error не инициазированна или это передача по ссылке?
                 if ($res) {
                     $result['notificationClientBySms']['isSent'] = true;
                 }
