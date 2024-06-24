@@ -10,7 +10,7 @@ class TsReturnOperation extends ReferencesOperation
     /**
      * @throws \Exception
      */
-    public function doOperation(): void
+    public function doOperation(): array
     {
         $data = (array)$this->getRequest('data');
         $resellerId = $data['resellerId'];
@@ -29,17 +29,17 @@ class TsReturnOperation extends ReferencesOperation
             return $result;
         }
 
-        if (empty((int)$notificationType)) {
+        if (empty($notificationType)) {
             throw new \Exception('Empty notificationType', 400);
         }
 
         $reseller = Seller::getById((int)$resellerId);
-        if ($reseller === null) {
+        if (empty($reseller->id)) {
             throw new \Exception('Seller not found!', 400);
         }
 
         $client = Contractor::getById((int)$data['clientId']);
-        if ($client === null || $client->type !== Contractor::TYPE_CUSTOMER || $client->Seller->id !== $resellerId) {
+        if (empty($client->id) || $client->type !== Contractor::TYPE_CUSTOMER || $client->Seller->id !== $resellerId) {
             throw new \Exception('сlient not found!', 400);
         }
 
@@ -49,12 +49,12 @@ class TsReturnOperation extends ReferencesOperation
         }
 
         $cr = Employee::getById((int)$data['creatorId']);
-        if ($cr === null) {
+        if (empty($cr->id)) {
             throw new \Exception('Creator not found!', 400);
         }
 
         $et = Employee::getById((int)$data['expertId']);
-        if ($et === null) {
+        if (empty($et->id)) {
             throw new \Exception('Expert not found!', 400);
         }
 
